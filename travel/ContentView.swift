@@ -1,6 +1,6 @@
 import SwiftUI
 import PhotosUI
-import UIKit
+import ImageIO
 
 enum TravelStyle: String, CaseIterable, Identifiable {
     case relaxing = "慢活放鬆"
@@ -174,8 +174,8 @@ struct ContentView: View {
                 }
                 .padding()
             }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("夢想旅行規劃師")
+            .background(Color.secondary.opacity(0.08))
+            .navigationTitle("旅行規劃")
             .navigationBarTitleDisplayMode(.inline)
             .onChange(of: selectedPhotoItem) { _, newItem in
                 Task {
@@ -273,11 +273,6 @@ private struct PlannerHeader: View {
 
             Text("填入旅行條件")
                 .font(.title2.bold())
-
-            Text("利用各種 SwiftUI 元件，打造一份專屬於你的旅行計畫。")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
         }
         .padding(.vertical, 8)
     }
@@ -430,7 +425,7 @@ private struct PersonalizationSection: View {
                 TextEditor(text: $notes)
                     .frame(minHeight: 110)
                     .padding(6)
-                    .background(Color(.secondarySystemBackground))
+                    .background(Color.secondary.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                     .overlay {
                         if notes.isEmpty {
@@ -480,8 +475,8 @@ private struct TravelPhotoPreview: View {
     let photoData: Data?
 
     var body: some View {
-        if let photoData, let image = UIImage(data: photoData) {
-            Image(uiImage: image)
+        if let photoData, let image = decodedImage(from: photoData) {
+            image
                 .resizable()
                 .scaledToFill()
                 .frame(height: 180)
@@ -570,7 +565,7 @@ private struct TravelResultView: View {
             }
             .padding()
         }
-        .background(Color(.systemGroupedBackground))
+        .background(Color.secondary.opacity(0.08))
         .navigationTitle("旅行計畫")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -584,8 +579,8 @@ private struct ResultHeroSection: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            if let photoData, let image = UIImage(data: photoData) {
-                Image(uiImage: image)
+            if let photoData, let image = decodedImage(from: photoData) {
+                image
                     .resizable()
                     .scaledToFill()
             } else {
@@ -610,7 +605,7 @@ private struct ResultHeroSection: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(destination)
                     .font(.largeTitle.bold())
-                Text("\(travelerName) 的夢想旅程")
+                Text("\(travelerName) 的旅程")
                     .font(.headline)
             }
             .foregroundStyle(.white)
@@ -621,6 +616,15 @@ private struct ResultHeroSection: View {
         .clipShape(RoundedRectangle(cornerRadius: 22))
         .clipped()
     }
+}
+
+private func decodedImage(from data: Data) -> Image? {
+    guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+          let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+        return nil
+    }
+
+    return Image(decorative: cgImage, scale: 1, orientation: .up)
 }
 
 private struct BudgetResultSection: View {
